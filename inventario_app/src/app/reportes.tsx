@@ -21,6 +21,7 @@ interface Producto {
 export default function Reportes() {
 
   const [productos, setProductos] = useState<Producto[]>([]);
+  const [cargando, setCargando] = useState(true);
 
   useEffect(() => {
     cargarProductos();
@@ -30,30 +31,56 @@ export default function Reportes() {
 
     try {
 
+      setCargando(true);
+
       const response = await api.get('/productos');
 
-      setProductos(response.data.data);
+      console.log('Respuesta API:', response.data);
+
+      // Si el backend devuelve { data: [...] }
+      if (response.data.data) {
+        setProductos(response.data.data);
+      }
+      // Si devuelve directamente un arreglo
+      else if (Array.isArray(response.data)) {
+        setProductos(response.data);
+      }
+      else {
+        setProductos([]);
+      }
 
     } catch (error) {
-      console.log(error);
+
+      console.log('Error al cargar productos:', error);
+
+    } finally {
+
+      setCargando(false);
+
     }
   };
 
-  // Total de productos
+  if (cargando) {
+    return (
+      <View style={styles.cargandoContainer}>
+        <Text style={styles.cargandoTexto}>
+          Cargando reportes...
+        </Text>
+      </View>
+    );
+  }
+
   const totalProductos = productos.length;
 
-  // Productos con stock bajo
   const stockBajo = productos.filter(
     producto => producto.cantidad <= producto.stock_minimo
   );
 
-  // Total de unidades
   const totalUnidades = productos.reduce(
     (total, producto) => total + producto.cantidad,
     0
   );
 
-  // Productos próximos a vencer
   const hoy = new Date();
 
   const proximosVencer = productos.filter(producto => {
@@ -64,7 +91,7 @@ export default function Reportes() {
       (fechaVencimiento.getTime() - hoy.getTime()) /
       (1000 * 60 * 60 * 24);
 
-    return diferenciaDias <= 30;
+    return diferenciaDias >= 0 && diferenciaDias <= 30;
   });
 
   return (
@@ -104,7 +131,10 @@ export default function Reportes() {
         </Text>
       </View>
 
-      <View style={styles.tarjeta}>
+      <TouchableOpacity
+        style={styles.tarjeta}
+        onPress={() => router.push('/stock-bajo')}
+      >
         <Text style={styles.valor}>
           {stockBajo.length}
         </Text>
@@ -112,9 +142,12 @@ export default function Reportes() {
         <Text style={styles.descripcion}>
           Productos con Stock Bajo
         </Text>
-      </View>
+      </TouchableOpacity>
 
-      <View style={styles.tarjeta}>
+      <TouchableOpacity
+        style={styles.tarjeta}
+        onPress={() => router.push('/proximos-vencer')}
+      >
         <Text style={styles.valor}>
           {proximosVencer.length}
         </Text>
@@ -122,7 +155,7 @@ export default function Reportes() {
         <Text style={styles.descripcion}>
           Productos Próximos a Vencer
         </Text>
-      </View>
+      </TouchableOpacity>
 
     </ScrollView>
 
@@ -135,6 +168,17 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#fff',
     padding: 20
+  },
+
+  cargandoContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center'
+  },
+
+  cargandoTexto: {
+    fontSize: 20,
+    fontWeight: 'bold'
   },
 
   botonVolver: {
