@@ -1,16 +1,43 @@
+/**
+ * =====================================================
+ * CONTROLADOR DE USUARIOS
+ * =====================================================
+ * Este archivo contiene las funciones para:
+ *
+ * - Obtener todos los usuarios.
+ * - Actualizar usuarios.
+ * - Eliminar usuarios.
+ * =====================================================
+ */
+
 const db = require('../config/db');
 const bcrypt = require('bcryptjs');
 
-// Obtener todos los usuarios
+/**
+ * =====================================================
+ * OBTENER TODOS LOS USUARIOS
+ * =====================================================
+ */
 const obtenerUsuarios = async (req, res) => {
 
     try {
 
+        /**
+         * Consulta todos los usuarios registrados.
+         */
         const [usuarios] = await db.query(`
-            SELECT id_usuario, nombre, correo, rol, fecha_creacion
+            SELECT
+                id_usuario,
+                nombre,
+                correo,
+                rol,
+                fecha_creacion
             FROM usuarios
         `);
 
+        /**
+         * Respuesta exitosa.
+         */
         res.json({
             success: true,
             data: usuarios
@@ -27,7 +54,11 @@ const obtenerUsuarios = async (req, res) => {
     }
 };
 
-// Actualizar usuario
+/**
+ * =====================================================
+ * ACTUALIZAR USUARIO
+ * =====================================================
+ */
 const actualizarUsuario = async (req, res) => {
 
     console.log('===== ACTUALIZAR USUARIO =====');
@@ -36,8 +67,14 @@ const actualizarUsuario = async (req, res) => {
 
     try {
 
+        /**
+         * Obtener ID enviado por URL.
+         */
         const { id } = req.params;
 
+        /**
+         * Obtener datos enviados.
+         */
         const {
             nombre,
             correo,
@@ -45,24 +82,67 @@ const actualizarUsuario = async (req, res) => {
             rol
         } = req.body;
 
-        // Verificar que el usuario exista
+        /**
+         * Validar campos obligatorios.
+         */
+        if (!nombre || !correo || !rol) {
+
+            return res.status(400).json({
+                success: false,
+                mensaje: 'Todos los campos son obligatorios'
+            });
+        }
+
+        /**
+         * Verificar existencia del usuario.
+         */
         const [usuario] = await db.query(
             'SELECT * FROM usuarios WHERE id_usuario = ?',
             [id]
         );
 
         if (usuario.length === 0) {
+
             return res.status(404).json({
                 success: false,
                 mensaje: 'Usuario no encontrado'
             });
         }
 
-        // Si viene una contraseña nueva
+        /**
+         * Verificar si el correo ya pertenece
+         * a otro usuario.
+         */
+        const [correoExistente] = await db.query(
+            `SELECT *
+             FROM usuarios
+             WHERE correo = ?
+             AND id_usuario <> ?`,
+            [correo, id]
+        );
+
+        if (correoExistente.length > 0) {
+
+            return res.status(400).json({
+                success: false,
+                mensaje: 'El correo ya está registrado'
+            });
+        }
+
+        /**
+         * Si se envió una nueva contraseña.
+         */
         if (password && password.trim() !== '') {
 
-            const passwordHash = await bcrypt.hash(password, 10);
+            /**
+             * Encriptar contraseña.
+             */
+            const passwordHash =
+                await bcrypt.hash(password, 10);
 
+            /**
+             * Actualizar incluyendo contraseña.
+             */
             await db.query(`
                 UPDATE usuarios
                 SET nombre = ?,
@@ -80,6 +160,9 @@ const actualizarUsuario = async (req, res) => {
 
         } else {
 
+            /**
+             * Actualizar sin modificar contraseña.
+             */
             await db.query(`
                 UPDATE usuarios
                 SET nombre = ?,
@@ -94,6 +177,9 @@ const actualizarUsuario = async (req, res) => {
             ]);
         }
 
+        /**
+         * Respuesta exitosa.
+         */
         res.json({
             success: true,
             mensaje: 'Usuario actualizado correctamente'
@@ -101,7 +187,6 @@ const actualizarUsuario = async (req, res) => {
 
     } catch (error) {
 
-        console.log('ERROR AL ACTUALIZAR USUARIO');
         console.log(error);
 
         res.status(500).json({
@@ -111,7 +196,70 @@ const actualizarUsuario = async (req, res) => {
     }
 };
 
+/**
+ * =====================================================
+ * ELIMINAR USUARIO
+ * =====================================================
+ */
+const eliminarUsuario = async (req, res) => {
+
+    try {
+
+        /**
+         * Obtener ID del usuario.
+         */
+        const { id } = req.params;
+
+        /**
+         * Verificar que exista.
+         */
+        const [usuario] = await db.query(
+            'SELECT * FROM usuarios WHERE id_usuario = ?',
+            [id]
+        );
+
+        if (usuario.length === 0) {
+
+            return res.status(404).json({
+                success: false,
+                mensaje: 'Usuario no encontrado'
+            });
+        }
+
+        /**
+         * Eliminar usuario.
+         */
+        await db.query(
+            'DELETE FROM usuarios WHERE id_usuario = ?',
+            [id]
+        );
+
+        /**
+         * Respuesta exitosa.
+         */
+        res.json({
+            success: true,
+            mensaje: 'Usuario eliminado correctamente'
+        });
+
+    } catch (error) {
+
+        console.log(error);
+
+        res.status(500).json({
+            success: false,
+            mensaje: 'Error al eliminar usuario'
+        });
+    }
+};
+
+/**
+ * =====================================================
+ * EXPORTAR CONTROLADORES
+ * =====================================================
+ */
 module.exports = {
     obtenerUsuarios,
-    actualizarUsuario
+    actualizarUsuario,
+    eliminarUsuario
 };

@@ -5,7 +5,8 @@ import {
   Text,
   TouchableOpacity,
   StyleSheet,
-  FlatList
+  FlatList,
+  Alert
 } from 'react-native';
 
 import api from '../services/api';
@@ -43,19 +44,12 @@ export default function Usuarios() {
 
   /**
    * Función encargada de consultar
-   * todos los usuarios registrados
-   * en la base de datos.
+   * todos los usuarios registrados.
    */
   const obtenerUsuarios = async () => {
 
     try {
 
-      /**
-       * Petición GET al backend.
-       *
-       * Ruta:
-       * http://localhost:3000/api/usuarios
-       */
       const response = await api.get('/usuarios');
 
       console.log(
@@ -63,10 +57,6 @@ export default function Usuarios() {
         response.data
       );
 
-      /**
-       * Guarda los usuarios obtenidos
-       * en el estado de la aplicación.
-       */
       setUsuarios(response.data.data);
 
     } catch (error) {
@@ -74,6 +64,59 @@ export default function Usuarios() {
       console.log(
         'Error al obtener usuarios:',
         error
+      );
+    }
+  };
+
+  /**
+   * Función encargada de eliminar
+   * un usuario del sistema.
+   */
+  const eliminarUsuario = async (id: number) => {
+
+    console.log(
+      'Intentando eliminar usuario:',
+      id
+    );
+
+    try {
+
+      /**
+       * Petición DELETE al backend.
+       */
+      const response = await api.delete(
+        `/usuarios/${id}`
+      );
+
+      console.log(
+        'Respuesta del servidor:',
+        response.data
+      );
+
+      /**
+       * Mostrar mensaje de éxito.
+       */
+      Alert.alert(
+        'Éxito',
+        response.data.mensaje
+      );
+
+      /**
+       * Actualizar la lista de usuarios.
+       */
+      obtenerUsuarios();
+
+    } catch (error: any) {
+
+      console.log(
+        'ERROR AL ELIMINAR:',
+        error.response?.data
+      );
+
+      Alert.alert(
+        'Error',
+        error.response?.data?.mensaje ||
+        'No se pudo eliminar el usuario'
       );
     }
   };
@@ -101,16 +144,10 @@ export default function Usuarios() {
       <FlatList
         data={usuarios}
 
-        /**
-         * Identificador único de cada usuario.
-         */
         keyExtractor={(item) =>
           item.id_usuario.toString()
         }
 
-        /**
-         * Renderiza cada usuario de la lista.
-         */
         renderItem={({ item }) => (
 
           <View style={styles.tarjeta}>
@@ -130,14 +167,14 @@ export default function Usuarios() {
               Rol: {item.rol}
             </Text>
 
-            {/* Botón para editar */}
+            {/* Botón Editar */}
             <TouchableOpacity
               style={styles.botonEditar}
-
               onPress={() =>
                 router.push({
                   pathname: '/editar-perfil',
                   params: {
+                    id: item.id_usuario,
                     nombre: item.nombre,
                     correo: item.correo,
                     rol: item.rol
@@ -150,13 +187,22 @@ export default function Usuarios() {
               </Text>
             </TouchableOpacity>
 
+            {/* Botón Eliminar */}
+            <TouchableOpacity
+              style={styles.botonEliminar}
+              onPress={() =>
+                eliminarUsuario(item.id_usuario)
+              }
+            >
+              <Text style={styles.textoBoton}>
+                🗑️ Eliminar
+              </Text>
+            </TouchableOpacity>
+
           </View>
 
         )}
 
-        /**
-         * Mensaje mostrado cuando no existen usuarios.
-         */
         ListEmptyComponent={
           <Text style={styles.sinDatos}>
             No hay usuarios registrados.
@@ -175,18 +221,12 @@ export default function Usuarios() {
  */
 const styles = StyleSheet.create({
 
-  /**
-   * Contenedor principal.
-   */
   container: {
     flex: 1,
     backgroundColor: '#fff',
     padding: 20
   },
 
-  /**
-   * Botón para volver.
-   */
   botonVolver: {
     marginTop: 20,
     marginBottom: 20,
@@ -197,9 +237,6 @@ const styles = StyleSheet.create({
     borderRadius: 10
   },
 
-  /**
-   * Texto utilizado en los botones.
-   */
   textoBoton: {
     color: '#fff',
     textAlign: 'center',
@@ -207,9 +244,6 @@ const styles = StyleSheet.create({
     fontSize: 16
   },
 
-  /**
-   * Título principal.
-   */
   titulo: {
     fontSize: 30,
     fontWeight: 'bold',
@@ -217,9 +251,6 @@ const styles = StyleSheet.create({
     marginBottom: 30
   },
 
-  /**
-   * Tarjeta de cada usuario.
-   */
   tarjeta: {
     backgroundColor: '#f5f5f5',
     padding: 20,
@@ -227,26 +258,17 @@ const styles = StyleSheet.create({
     marginBottom: 15
   },
 
-  /**
-   * Nombre del usuario.
-   */
   nombre: {
     fontSize: 22,
     fontWeight: 'bold',
     marginBottom: 10
   },
 
-  /**
-   * Información general.
-   */
   informacion: {
     fontSize: 16,
     marginBottom: 5
   },
 
-  /**
-   * Botón para editar usuario.
-   */
   botonEditar: {
     backgroundColor: '#007AFF',
     padding: 12,
@@ -254,9 +276,13 @@ const styles = StyleSheet.create({
     marginTop: 15
   },
 
-  /**
-   * Texto mostrado cuando no existen registros.
-   */
+  botonEliminar: {
+    backgroundColor: '#dc3545',
+    padding: 12,
+    borderRadius: 10,
+    marginTop: 10
+  },
+
   sinDatos: {
     textAlign: 'center',
     marginTop: 30,

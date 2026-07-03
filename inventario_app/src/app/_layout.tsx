@@ -1,9 +1,32 @@
+/**
+ * =====================================================
+ * LAYOUT PRINCIPAL DE LA APLICACIÓN
+ * =====================================================
+ * Este archivo define todas las pantallas
+ * disponibles dentro de la aplicación.
+ *
+ * Se utiliza Expo Router para gestionar
+ * la navegación entre pantallas.
+ *
+ * Todas las pantallas se muestran sin
+ * encabezado (header).
+ * =====================================================
+ */
+
 import { Stack } from 'expo-router';
 
+/**
+ * =====================================================
+ * COMPONENTE PRINCIPAL DE NAVEGACIÓN
+ * =====================================================
+ */
 export default function RootLayout() {
+
   return (
+
     <Stack>
 
+      {/* Pantalla de inicio o login */}
       <Stack.Screen
         name="index"
         options={{
@@ -11,6 +34,7 @@ export default function RootLayout() {
         }}
       />
 
+      {/* Menú principal del inventario */}
       <Stack.Screen
         name="inventario"
         options={{
@@ -18,6 +42,7 @@ export default function RootLayout() {
         }}
       />
 
+      {/* Pantalla para agregar productos */}
       <Stack.Screen
         name="agregar-producto"
         options={{
@@ -25,6 +50,7 @@ export default function RootLayout() {
         }}
       />
 
+      {/* Pantalla para visualizar productos */}
       <Stack.Screen
         name="ver-productos"
         options={{
@@ -32,6 +58,17 @@ export default function RootLayout() {
         }}
       />
 
+      {/* =====================================================
+          NUEVA PANTALLA PARA EDITAR PRODUCTOS
+         ===================================================== */}
+      <Stack.Screen
+        name="editar-producto"
+        options={{
+          headerShown: false
+        }}
+      />
+
+      {/* Pantalla para buscar productos */}
       <Stack.Screen
         name="buscar-producto"
         options={{
@@ -39,6 +76,7 @@ export default function RootLayout() {
         }}
       />
 
+      {/* Pantalla de reportes */}
       <Stack.Screen
         name="reportes"
         options={{
@@ -46,6 +84,7 @@ export default function RootLayout() {
         }}
       />
 
+      {/* Pantalla de perfil */}
       <Stack.Screen
         name="perfil"
         options={{
@@ -53,6 +92,31 @@ export default function RootLayout() {
         }}
       />
 
+      {/* Pantalla para administrar usuarios */}
+      <Stack.Screen
+        name="usuarios"
+        options={{
+          headerShown: false
+        }}
+      />
+
+      {/* Pantalla para agregar usuarios */}
+      <Stack.Screen
+        name="agregar-usuario"
+        options={{
+          headerShown: false
+        }}
+      />
+
+      {/* Pantalla para editar usuarios */}
+      <Stack.Screen
+        name="editar-perfil"
+        options={{
+          headerShown: false
+        }}
+      />
+
     </Stack>
+
   );
 }

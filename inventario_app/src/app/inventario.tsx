@@ -8,118 +8,183 @@ import {
 } from 'react-native';
 
 /**
- * Pantalla principal del sistema de inventario.
+ * =====================================================
+ * PANTALLA PRINCIPAL DEL SISTEMA DE INVENTARIO
+ * =====================================================
  *
- * Esta pantalla permite al usuario acceder a las
- * diferentes funcionalidades del sistema, como:
- * - Agregar productos.
- * - Consultar productos.
- * - Buscar productos.
- * - Generar reportes.
- * - Consultar el perfil del usuario.
+ * Funcionalidades:
+ * - Mostrar bienvenida.
+ * - Navegar a las diferentes pantallas.
  * - Cerrar sesión.
+ * =====================================================
  */
 export default function Inventario() {
 
   /**
-   * Obtiene los parámetros enviados desde la pantalla
-   * de inicio de sesión.
+   * Datos recibidos desde el login.
    */
-  const { nombre, correo, rol } = useLocalSearchParams();
+  const {
+    nombre,
+    correo,
+    rol
+  } = useLocalSearchParams();
 
   return (
 
-    <ScrollView style={styles.container}>
+    <ScrollView
+      contentContainerStyle={styles.container}
+      showsVerticalScrollIndicator={false}
+    >
 
-      {/* Tarjeta de bienvenida del usuario */}
-      <View style={styles.tarjeta}>
+      {/* ================================================= */}
+      {/* TARJETA PRINCIPAL                                 */}
+      {/* ================================================= */}
+      <View style={styles.card}>
 
-        <Text style={styles.bienvenida}>
-          Bienvenido {nombre}
+        {/* Encabezado de bienvenida */}
+        <View style={styles.encabezado}>
+
+          <Text style={styles.bienvenida}>
+            🏛️ Bienvenido {nombre}
+          </Text>
+
+        </View>
+
+        {/* Separador decorativo */}
+        <Text style={styles.separador}>
+          ───── 💛 ─────
         </Text>
+
+        {/* Botón Agregar Producto */}
+        <TouchableOpacity
+          style={styles.boton}
+          onPress={() =>
+            router.push('/agregar-producto')
+          }
+        >
+
+          <Text style={styles.icono}>
+            ➕
+          </Text>
+
+          <Text style={styles.textoBoton}>
+            Agregar Producto
+          </Text>
+
+          <Text style={styles.flecha}>
+            ›
+          </Text>
+
+        </TouchableOpacity>
+
+        {/* Botón Ver Productos */}
+        <TouchableOpacity
+          style={styles.boton}
+          onPress={() =>
+            router.push('/ver-productos')
+          }
+        >
+
+          <Text style={styles.icono}>
+            📦
+          </Text>
+
+          <Text style={styles.textoBoton}>
+            Ver Productos
+          </Text>
+
+          <Text style={styles.flecha}>
+            ›
+          </Text>
+
+        </TouchableOpacity>
+
+        {/* Botón Buscar Producto */}
+        <TouchableOpacity
+          style={styles.boton}
+          onPress={() =>
+            router.push('/buscar-producto')
+          }
+        >
+
+          <Text style={styles.icono}>
+            🔍
+          </Text>
+
+          <Text style={styles.textoBoton}>
+            Buscar Producto
+          </Text>
+
+          <Text style={styles.flecha}>
+            ›
+          </Text>
+
+        </TouchableOpacity>
+
+        {/* Botón Reportes */}
+        <TouchableOpacity
+          style={styles.boton}
+          onPress={() =>
+            router.push('/reportes')
+          }
+        >
+
+          <Text style={styles.icono}>
+            📋
+          </Text>
+
+          <Text style={styles.textoBoton}>
+            Reportes
+          </Text>
+
+          <Text style={styles.flecha}>
+            ›
+          </Text>
+
+        </TouchableOpacity>
+
+        {/* Botón Perfil */}
+        <TouchableOpacity
+          style={styles.boton}
+          onPress={() =>
+            router.push({
+              pathname: '/perfil',
+              params: {
+                nombre: nombre as string,
+                correo: correo as string,
+                rol: rol as string
+              }
+            })
+          }
+        >
+
+          <Text style={styles.icono}>
+            👤
+          </Text>
+
+          <Text style={styles.textoBoton}>
+            Perfil
+          </Text>
+
+          <Text style={styles.flecha}>
+            ›
+          </Text>
+
+        </TouchableOpacity>
+
+        {/* Botón Cerrar Sesión */}
+        <TouchableOpacity
+          style={styles.botonSalir}
+          onPress={() => router.replace('/')}
+        >
+
+          <Text style={styles.textoSalir}>
+            🚪 Cerrar Sesión
+          </Text>
+
+        </TouchableOpacity>
 
       </View>
-
-      {/* Botón para navegar a la pantalla de agregar productos */}
-      <TouchableOpacity
-        style={styles.boton}
-        onPress={() => router.push('/agregar-producto')}
-      >
-
-        <Text style={styles.textoBoton}>
-          ➕ Agregar Producto
-        </Text>
-
-      </TouchableOpacity>
-
-      {/* Botón para visualizar todos los productos registrados */}
-      <TouchableOpacity
-        style={styles.boton}
-        onPress={() => router.push('/ver-productos')}
-      >
-
-        <Text style={styles.textoBoton}>
-          📋 Ver Productos
-        </Text>
-
-      </TouchableOpacity>
-
-      {/* Botón para buscar productos específicos */}
-      <TouchableOpacity
-        style={styles.boton}
-        onPress={() => router.push('/buscar-producto')}
-      >
-
-        <Text style={styles.textoBoton}>
-          🔍 Buscar Producto
-        </Text>
-
-      </TouchableOpacity>
-
-      {/* Botón para acceder a la sección de reportes */}
-      <TouchableOpacity
-        style={styles.boton}
-        onPress={() => router.push('/reportes')}
-      >
-
-        <Text style={styles.textoBoton}>
-          📊 Reportes
-        </Text>
-
-      </TouchableOpacity>
-
-      {/* Botón para consultar la información del perfil del usuario */}
-      <TouchableOpacity
-        style={styles.boton}
-        onPress={() =>
-          router.push({
-            pathname: '/perfil',
-            params: {
-              nombre: nombre as string,
-              correo: correo as string,
-              rol: rol as string
-            }
-          })
-        }
-      >
-
-        <Text style={styles.textoBoton}>
-          👤 Perfil
-        </Text>
-
-      </TouchableOpacity>
-
-      {/* Botón para cerrar la sesión y regresar al login */}
-      <TouchableOpacity
-        style={[styles.boton, styles.salir]}
-        onPress={() => router.replace('/')}
-      >
-
-        <Text style={styles.textoBoton}>
-          🚪 Cerrar Sesión
-        </Text>
-
-      </TouchableOpacity>
 
     </ScrollView>
 
@@ -127,70 +192,165 @@ export default function Inventario() {
 }
 
 /**
- * Estilos utilizados en la pantalla principal
- * del sistema de inventario.
+ * =====================================================
+ * ESTILOS
+ * =====================================================
  */
 const styles = StyleSheet.create({
 
   /**
-   * Contenedor principal de la pantalla.
+   * Contenedor principal.
    */
   container: {
-    flex: 1,
-    backgroundColor: '#000',
-    padding: 20
-  },
-
-  /**
-   * Tarjeta que muestra el mensaje de bienvenida.
-   */
-  tarjeta: {
-    borderWidth: 1,
-    borderColor: '#444',
-    borderRadius: 10,
+    flexGrow: 1,
+    justifyContent: 'center',
     padding: 20,
-    marginTop: 40,
-    marginBottom: 30
+    backgroundColor: '#F5F1E8'
   },
 
   /**
-   * Texto de bienvenida mostrado al usuario.
+   * Tarjeta principal.
+   */
+  card: {
+    backgroundColor: '#FFFFFF',
+
+    borderRadius: 30,
+
+    padding: 20,
+
+    shadowColor: '#000',
+
+    shadowOffset: {
+      width: 0,
+      height: 4
+    },
+
+    shadowOpacity: 0.12,
+
+    shadowRadius: 8,
+
+    elevation: 6
+  },
+
+  /**
+   * Encabezado de bienvenida.
+   */
+  encabezado: {
+    backgroundColor: '#0D3B66',
+
+    borderRadius: 18,
+
+    paddingVertical: 25,
+
+    marginBottom: 20
+  },
+
+  /**
+   * Texto de bienvenida.
    */
   bienvenida: {
-    color: '#fff',
-    fontSize: 24,
+    color: '#FFFFFF',
+
+    fontSize: 26,
+
     textAlign: 'center',
+
     fontWeight: 'bold'
   },
 
   /**
-   * Estilo general de los botones del menú.
+   * Separador decorativo.
+   */
+  separador: {
+    textAlign: 'center',
+
+    color: '#D4AF37',
+
+    fontSize: 20,
+
+    marginBottom: 25
+  },
+
+  /**
+   * Botones del menú.
    */
   boton: {
-    backgroundColor: '#111',
+
+    flexDirection: 'row',
+
+    alignItems: 'center',
+
+    backgroundColor: '#FFFFFF',
+
     borderWidth: 1,
-    borderColor: '#444',
-    padding: 18,
-    borderRadius: 10,
+
+    borderColor: '#E5E5E5',
+
+    borderRadius: 18,
+
+    paddingVertical: 20,
+
+    paddingHorizontal: 18,
+
     marginBottom: 15
   },
 
   /**
-   * Texto mostrado dentro de cada botón.
+   * Iconos de los botones.
+   */
+  icono: {
+    fontSize: 28,
+    width: 45
+  },
+
+  /**
+   * Texto de cada botón.
    */
   textoBoton: {
-    color: '#fff',
-    fontSize: 18,
-    textAlign: 'center',
+    flex: 1,
+
+    fontSize: 20,
+
+    color: '#0D3B66',
+
     fontWeight: 'bold'
   },
 
   /**
-   * Estilo específico para el botón de cerrar sesión.
+   * Flecha ubicada a la derecha.
    */
-  salir: {
-    marginTop: 20,
-    borderColor: '#ff4444'
+  flecha: {
+    fontSize: 32,
+    color: '#999'
+  },
+
+  /**
+   * Botón cerrar sesión.
+   */
+  botonSalir: {
+
+    borderWidth: 1.5,
+
+    borderColor: '#E74C3C',
+
+    borderRadius: 18,
+
+    paddingVertical: 20,
+
+    marginTop: 10
+  },
+
+  /**
+   * Texto cerrar sesión.
+   */
+  textoSalir: {
+    color: '#C0392B',
+
+    textAlign: 'center',
+
+    fontSize: 22,
+
+    fontWeight: 'bold'
   }
 
 });

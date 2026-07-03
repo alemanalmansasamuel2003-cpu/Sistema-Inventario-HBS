@@ -1,15 +1,51 @@
+/**
+ * =====================================================
+ * RUTAS DE USUARIOS
+ * =====================================================
+ * Este archivo contiene las rutas relacionadas
+ * con la administración de usuarios.
+ *
+ * Funcionalidades:
+ * - Obtener todos los usuarios.
+ * - Actualizar usuarios.
+ * - Eliminar usuarios.
+ * =====================================================
+ */
+
 const express = require('express');
 const router = express.Router();
 
+/**
+ * Importar controladores.
+ */
 const {
     obtenerUsuarios,
-    actualizarUsuario
+    actualizarUsuario,
+    eliminarUsuario
 } = require('../controllers/usuarios.controller');
 
-// Obtener todos los usuarios
+/**
+ * =====================================================
+ * OBTENER TODOS LOS USUARIOS
+ * =====================================================
+ */
 router.get('/', obtenerUsuarios);
 
-// Actualizar usuario
+/**
+ * =====================================================
+ * ACTUALIZAR USUARIO
+ * =====================================================
+ */
 router.put('/:id', actualizarUsuario);
 
+/**
+ * =====================================================
+ * ELIMINAR USUARIO
+ * =====================================================
+ */
+router.delete('/:id', eliminarUsuario);
+
+/**
+ * Exportar rutas.
+ */
 module.exports = router;

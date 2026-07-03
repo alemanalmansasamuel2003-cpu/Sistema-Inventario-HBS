@@ -14,20 +14,23 @@ import { Picker } from '@react-native-picker/picker';
 import api from '../services/api';
 
 /**
- * Pantalla para registrar nuevos usuarios en el sistema.
+ * =====================================================
+ * PANTALLA: AGREGAR USUARIO
+ * =====================================================
+ * Permite registrar nuevos usuarios en el sistema.
  *
- * Permite:
- * - Ingresar nombre.
- * - Ingresar correo electrónico.
- * - Ingresar contraseña.
- * - Seleccionar el rol del usuario.
- * - Guardar el usuario en la base de datos.
+ * Validaciones:
+ * - Campos obligatorios.
+ * - Nombre mínimo de 3 caracteres.
+ * - Correo electrónico válido.
+ * - Contraseña mínima de 6 caracteres.
+ * - Correos duplicados.
+ * =====================================================
  */
 export default function AgregarUsuario() {
 
   /**
-   * Estados para almacenar la información
-   * ingresada en el formulario.
+   * Estados del formulario.
    */
   const [nombre, setNombre] = useState('');
   const [correo, setCorreo] = useState('');
@@ -35,27 +38,79 @@ export default function AgregarUsuario() {
   const [rol, setRol] = useState('');
 
   /**
-   * Estado para mostrar u ocultar
-   * la contraseña.
+   * Mostrar u ocultar contraseña.
    */
   const [mostrarPassword, setMostrarPassword] =
     useState(false);
 
   /**
-   * Función encargada de registrar
-   * un nuevo usuario.
+   * =====================================================
+   * FUNCIÓN GUARDAR USUARIO
+   * =====================================================
    */
   const guardarUsuario = async () => {
 
     /**
-     * Verifica que todos los campos
-     * estén completos.
+     * Eliminar espacios innecesarios.
      */
-    if (!nombre || !correo || !password || !rol) {
+    const nombreLimpio = nombre.trim();
+    const correoLimpio = correo.trim();
 
-      Alert.alert(
-        'Error',
-        'Todos los campos son obligatorios'
+    /**
+     * Validar campos vacíos.
+     */
+    if (
+      !nombreLimpio ||
+      !correoLimpio ||
+      !password ||
+      !rol
+    ) {
+
+      mostrarMensaje(
+        'Campos incompletos',
+        'Debe completar todos los campos.'
+      );
+
+      return;
+    }
+
+    /**
+     * Validar longitud del nombre.
+     */
+    if (nombreLimpio.length < 3) {
+
+      mostrarMensaje(
+        'Nombre inválido',
+        'El nombre debe contener al menos 3 caracteres.'
+      );
+
+      return;
+    }
+
+    /**
+     * Validar correo electrónico.
+     */
+    const expresionCorreo =
+      /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if (!expresionCorreo.test(correoLimpio)) {
+
+      mostrarMensaje(
+        'Correo inválido',
+        'Debe ingresar un correo electrónico válido.'
+      );
+
+      return;
+    }
+
+    /**
+     * Validar contraseña.
+     */
+    if (password.length < 6) {
+
+      mostrarMensaje(
+        'Contraseña inválida',
+        'La contraseña debe tener al menos 6 caracteres.'
       );
 
       return;
@@ -64,29 +119,28 @@ export default function AgregarUsuario() {
     try {
 
       /**
-       * Envía la información al backend
-       * para registrar el usuario.
+       * Petición POST al backend.
        */
       const response = await api.post(
         '/auth/register',
         {
-          nombre,
-          correo,
+          nombre: nombreLimpio,
+          correo: correoLimpio,
           password,
           rol
         }
       );
 
       /**
-       * Muestra mensaje de éxito.
+       * Mostrar mensaje de éxito.
        */
-      Alert.alert(
-        'Éxito',
+      mostrarMensaje(
+        'Usuario registrado',
         response.data.mensaje
       );
 
       /**
-       * Limpia los campos del formulario.
+       * Limpiar formulario.
        */
       setNombre('');
       setCorreo('');
@@ -95,16 +149,47 @@ export default function AgregarUsuario() {
 
     } catch (error: any) {
 
-      console.log(error.response?.data);
+      console.log(
+        'Error completo:',
+        error.response?.data
+      );
 
       /**
-       * Muestra el mensaje de error
-       * enviado por el servidor.
+       * Obtener mensaje del backend.
        */
-      Alert.alert(
-        'Error',
+      const mensaje =
         error.response?.data?.mensaje ||
-        'No se pudo registrar el usuario'
+        'No fue posible registrar el usuario.';
+
+      mostrarMensaje(
+        'Error al registrar usuario',
+        mensaje
+      );
+    }
+  };
+
+  /**
+   * =====================================================
+   * FUNCIÓN PARA MOSTRAR MENSAJES
+   * =====================================================
+   * En Web utiliza window.alert().
+   * En móvil utiliza Alert.alert().
+   * =====================================================
+   */
+  const mostrarMensaje = (
+    titulo: string,
+    mensaje: string
+  ) => {
+
+    if (typeof window !== 'undefined') {
+
+      window.alert(`${titulo}\n\n${mensaje}`);
+
+    } else {
+
+      Alert.alert(
+        titulo,
+        mensaje
       );
     }
   };
@@ -113,7 +198,7 @@ export default function AgregarUsuario() {
 
     <ScrollView style={styles.container}>
 
-      {/* Botón para regresar a la pantalla anterior */}
+      {/* Botón volver */}
       <TouchableOpacity
         style={styles.botonVolver}
         onPress={() => router.back()}
@@ -123,12 +208,12 @@ export default function AgregarUsuario() {
         </Text>
       </TouchableOpacity>
 
-      {/* Título principal */}
+      {/* Título */}
       <Text style={styles.titulo}>
         Agregar Usuario
       </Text>
 
-      {/* Campo para ingresar el nombre */}
+      {/* Nombre */}
       <TextInput
         style={styles.input}
         placeholder="Nombre Completo"
@@ -136,7 +221,7 @@ export default function AgregarUsuario() {
         onChangeText={setNombre}
       />
 
-      {/* Campo para ingresar el correo */}
+      {/* Correo */}
       <TextInput
         style={styles.input}
         placeholder="Correo Electrónico"
@@ -146,7 +231,7 @@ export default function AgregarUsuario() {
         onChangeText={setCorreo}
       />
 
-      {/* Campo de contraseña */}
+      {/* Contraseña */}
       <View style={styles.passwordContainer}>
 
         <TextInput
@@ -157,7 +242,6 @@ export default function AgregarUsuario() {
           onChangeText={setPassword}
         />
 
-        {/* Botón para mostrar u ocultar contraseña */}
         <TouchableOpacity
           onPress={() =>
             setMostrarPassword(!mostrarPassword)
@@ -170,12 +254,12 @@ export default function AgregarUsuario() {
 
       </View>
 
-      {/* Selector de roles del usuario */}
+      {/* Roles */}
       <View style={styles.pickerContainer}>
 
         <Picker
-          style={styles.picker}
           selectedValue={rol}
+          style={styles.picker}
           onValueChange={(itemValue) =>
             setRol(itemValue)
           }
@@ -205,7 +289,7 @@ export default function AgregarUsuario() {
 
       </View>
 
-      {/* Botón para guardar el usuario */}
+      {/* Botón Guardar */}
       <TouchableOpacity
         style={styles.boton}
         onPress={guardarUsuario}
@@ -216,27 +300,22 @@ export default function AgregarUsuario() {
       </TouchableOpacity>
 
     </ScrollView>
-
   );
 }
 
 /**
- * Estilos de la pantalla.
+ * =====================================================
+ * ESTILOS
+ * =====================================================
  */
 const styles = StyleSheet.create({
 
-  /**
-   * Contenedor principal.
-   */
   container: {
     flex: 1,
     backgroundColor: '#fff',
     padding: 20
   },
 
-  /**
-   * Botón para regresar.
-   */
   botonVolver: {
     marginTop: 20,
     marginBottom: 20,
@@ -247,9 +326,6 @@ const styles = StyleSheet.create({
     borderRadius: 10
   },
 
-  /**
-   * Título principal.
-   */
   titulo: {
     fontSize: 30,
     fontWeight: 'bold',
@@ -257,9 +333,6 @@ const styles = StyleSheet.create({
     marginBottom: 30
   },
 
-  /**
-   * Estilo general de los campos.
-   */
   input: {
     borderWidth: 1,
     borderColor: '#ccc',
@@ -268,9 +341,6 @@ const styles = StyleSheet.create({
     marginBottom: 15
   },
 
-  /**
-   * Contenedor del campo contraseña.
-   */
   passwordContainer: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -281,24 +351,15 @@ const styles = StyleSheet.create({
     marginBottom: 15
   },
 
-  /**
-   * Campo de texto de contraseña.
-   */
   passwordInput: {
     flex: 1,
     paddingVertical: 15
   },
 
-  /**
-   * Icono para mostrar/ocultar contraseña.
-   */
   icono: {
     fontSize: 24
   },
 
-  /**
-   * Contenedor del selector de roles.
-   */
   pickerContainer: {
     borderWidth: 1,
     borderColor: '#ccc',
@@ -309,27 +370,17 @@ const styles = StyleSheet.create({
     overflow: 'hidden'
   },
 
-  /**
-   * Estilo del selector.
-   */
   picker: {
     width: '100%',
     height: 55
   },
 
-  /**
-   * Botón para guardar el usuario.
-   */
   boton: {
     backgroundColor: '#28a745',
     padding: 15,
-    borderRadius: 10,
-    marginTop: 10
+    borderRadius: 10
   },
 
-  /**
-   * Texto utilizado en los botones.
-   */
   textoBoton: {
     color: '#fff',
     textAlign: 'center',
