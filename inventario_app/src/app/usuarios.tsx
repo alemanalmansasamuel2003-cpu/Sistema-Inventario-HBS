@@ -12,13 +12,19 @@ import {
 
 import api from '../services/api';
 
+
+
 /**
  * =====================================================
  * INTERFAZ USUARIO
  * =====================================================
- * Representa un usuario obtenido desde la API.
+ *
+ * Define la estructura de datos recibida
+ * desde la API.
+ *
  * =====================================================
  */
+
 interface Usuario {
 
   id_usuario: number;
@@ -31,260 +37,398 @@ interface Usuario {
 
 }
 
+
+
 /**
  * =====================================================
  * PANTALLA ADMINISTRAR USUARIOS
  * =====================================================
  *
- * Funcionalidades:
+ * Funciones:
  *
- * ✔ Obtener usuarios.
+ * ✔ Mostrar usuarios registrados.
  * ✔ Editar usuarios.
  * ✔ Eliminar usuarios.
- * ✔ Enviar el rol del usuario autenticado.
+ * ✔ Controlar permisos mediante roles.
+ *
+ * Roles:
+ *
+ * Administrador:
+ * - Puede editar.
+ * - Puede eliminar.
+ *
+ * Encargado:
+ * - Puede consultar.
  *
  * =====================================================
  */
 
+
 export default function Usuarios() {
 
-  /**
-   * =====================================================
-   * DATOS DEL USUARIO AUTENTICADO
-   * =====================================================
-   */
 
-  const {
-
-    rol
-
-  } = useLocalSearchParams();
 
   /**
    * =====================================================
-   * LISTA DE USUARIOS
+   * OBTENER ROL DEL USUARIO ACTUAL
    * =====================================================
    */
 
-  const [usuarios, setUsuarios] =
+  const { rol } = useLocalSearchParams();
+
+
+
+
+  /**
+   * =====================================================
+   * ESTADO DE USUARIOS
+   * =====================================================
+   */
+
+  const [usuarios,setUsuarios] =
     useState<Usuario[]>([]);
 
+
+
+
+
   /**
    * =====================================================
-   * CARGAR USUARIOS
+   * CARGAR USUARIOS AL INICIAR
    * =====================================================
    */
 
-  useEffect(() => {
+  useEffect(()=>{
 
     obtenerUsuarios();
 
-  }, []);
+  },[]);
+
+
+
+
 
   /**
    * =====================================================
-   * OBTENER USUARIOS
+   * CONSULTAR USUARIOS
    * =====================================================
+   *
+   * Obtiene la lista de usuarios
+   * desde el backend.
+   *
+   * Endpoint:
+   *
+   * GET /usuarios
+   *
+   =====================================================
    */
 
-  const obtenerUsuarios = async () => {
 
-    try {
+  const obtenerUsuarios = async()=>{
+
+
+    try{
+
 
       const response =
         await api.get('/usuarios');
 
+
+
       console.log(
-        'Usuarios obtenidos:',
+        "Usuarios obtenidos:",
         response.data
       );
 
-      if (response.data.success) {
+
+
+      if(response.data.success){
+
 
         setUsuarios(
           response.data.data
         );
 
-      } else {
+
+      }else{
+
 
         setUsuarios([]);
 
+
       }
 
-    } catch (error) {
+
+
+    }catch(error){
+
 
       console.log(error);
 
+
+
       Alert.alert(
 
-        'Error',
+        "Error",
 
-        'No fue posible cargar los usuarios.'
+        "No fue posible cargar los usuarios."
 
       );
 
+
     }
 
+
   };
+
+
+
+
+
 
   /**
    * =====================================================
    * ELIMINAR USUARIO
    * =====================================================
+   *
+   * Permite eliminar un usuario.
+   *
+   * Proceso:
+   *
+   * 1. Recibe ID del usuario.
+   * 2. Solicita confirmación.
+   * 3. Ejecuta DELETE contra la API.
+   * 4. Actualiza la lista.
+   *
+   * Endpoint:
+   *
+   * DELETE /usuarios/:id
+   *
+   * =====================================================
    */
 
-  const eliminarUsuario = async (
 
-    id: number
+  const eliminarUsuario = async(id:number)=>{
 
-  ) => {    Alert.alert(
 
-      'Eliminar usuario',
+    /**
+     * Validar ID
+     */
 
-      '¿Desea eliminar este usuario?',
+    if(!id){
 
-      [
 
-        {
+      alert(
+        "Usuario inválido."
+      );
 
-          text: 'Cancelar',
 
-          style: 'cancel',
+      return;
 
-        },
 
-        {
+    }
 
-          text: 'Eliminar',
 
-          style: 'destructive',
 
-          onPress: async () => {
 
-            try {
+    /**
+     * Confirmación compatible
+     * con Expo Web.
+     */
 
-              const response = await api.delete(
+    const confirmar =
+      window.confirm(
 
-                `/usuarios/${id}`
+        "¿Desea eliminar este usuario?"
 
-              );
+      );
 
-              Alert.alert(
 
-                'Éxito',
 
-                response.data.mensaje
+    if(!confirmar){
 
-              );
 
-              /**
-               * Recargar la lista.
-               */
+      console.log(
+        "Eliminación cancelada"
+      );
 
-              obtenerUsuarios();
 
-            } catch (error: any) {
+      return;
 
-              console.log(error);
 
-              Alert.alert(
+    }
 
-                'Error',
 
-                error.response?.data?.mensaje ??
 
-                'No fue posible eliminar el usuario.'
 
-              );
+    try{
 
-            }
 
-          }
+      console.log(
+        "Eliminando usuario ID:",
+        id
+      );
 
-        }
 
-      ]
 
-    );
+      const response =
+        await api.delete(
+
+          `/usuarios/${id}`
+
+        );
+
+
+
+
+      console.log(
+
+        "Respuesta eliminar:",
+
+        response.data
+
+      );
+
+
+
+
+      alert(
+
+        response.data.mensaje ||
+
+        "Usuario eliminado correctamente."
+
+      );
+
+
+
+
+      /**
+       * Actualizar lista
+       */
+
+      obtenerUsuarios();
+
+
+
+
+    }catch(error:any){
+
+
+
+      console.log(
+
+        "Error eliminar:",
+
+        error.response?.data ||
+
+        error
+
+      );
+
+
+
+      alert(
+
+        error.response?.data?.mensaje ||
+
+        "No fue posible eliminar el usuario."
+
+      );
+
+
+
+    }
+
+
 
   };
+
+
+
+
+
+
 
   /**
    * =====================================================
    * EDITAR USUARIO
    * =====================================================
    *
-   * Envía la información del usuario seleccionado
-   * junto con el rol del usuario autenticado.
+   * Envía los datos del usuario seleccionado
+   * hacia la pantalla editar-perfil.
    *
    * =====================================================
    */
 
-  const editarUsuario = (
 
-    usuario: Usuario
+  const editarUsuario =
+  (usuario:Usuario)=>{
 
-  ) => {
 
-    console.log('========== USUARIO ==========');
+    if(!usuario.id_usuario){
 
-    console.log(usuario);
-
-    /**
-     * Validar ID.
-     */
-
-    if (!usuario.id_usuario) {
 
       Alert.alert(
 
-        'Error',
+        "Error",
 
-        'El usuario seleccionado no tiene un ID válido.'
+        "Usuario inválido."
 
       );
 
+
       return;
+
 
     }
 
-    /**
-     * Abrir Editar Perfil.
-     */
+
 
     router.push({
 
-      pathname: '/editar-perfil',
 
-      params: {
+      pathname:'/editar-perfil',
 
-        /**
-         * Usuario que será editado.
-         */
 
-        id: usuario.id_usuario.toString(),
 
-        nombre: usuario.nombre,
+      params:{
 
-        correo: usuario.correo,
 
-        /**
-         * Rol del usuario que será editado.
-         */
+        id:
+        usuario.id_usuario.toString(),
 
-        rol: usuario.rol,
 
-        /**
-         * Rol del usuario autenticado.
-         */
+        nombre:
+        usuario.nombre,
 
-        rolUsuario: String(rol)
+
+        correo:
+        usuario.correo,
+
+
+        rol:
+        usuario.rol,
+
+
+        rolUsuario:
+        String(rol)
+
 
       }
 
+
+
     });
 
+
+
   };
+
+
+
+
+
 
   /**
    * =====================================================
@@ -292,102 +436,172 @@ export default function Usuarios() {
    * =====================================================
    */
 
-  return (
 
-    <View style={styles.container}> 
+  return(
 
-      {/* ===================================================== */}
-      {/* BOTÓN VOLVER */}
-      {/* ===================================================== */}
+
+    <View style={styles.container}>
+
 
       <TouchableOpacity
+
         style={styles.botonVolver}
-        onPress={() => router.back()}
+
+        onPress={()=>router.back()}
+
       >
 
         <Text style={styles.textoBoton}>
+
           ⬅ Volver
+
         </Text>
+
 
       </TouchableOpacity>
 
-      {/* ===================================================== */}
-      {/* TÍTULO */}
-      {/* ===================================================== */}
+
+
+
 
       <Text style={styles.titulo}>
+
         Administrar Usuarios
+
       </Text>
 
-      {/* ===================================================== */}
-      {/* LISTA DE USUARIOS */}
-      {/* ===================================================== */}
+
+
+
 
       <FlatList
 
+
         data={usuarios}
 
-        keyExtractor={(item) =>
+
+
+        keyExtractor={(item)=>
+
           item.id_usuario.toString()
+
         }
+
+
 
         showsVerticalScrollIndicator={false}
 
-        renderItem={({ item }) => (
+
+
+        renderItem={({item})=>(
+
 
           <View style={styles.tarjeta}>
 
-            {/* Nombre */}
 
             <Text style={styles.nombre}>
+
               {item.nombre}
+
             </Text>
 
-            {/* Correo */}
+
 
             <Text style={styles.informacion}>
+
               {item.correo}
+
             </Text>
 
-            {/* Rol */}
+
 
             <Text style={styles.informacion}>
+
               Rol: {item.rol}
+
             </Text>
 
-            {/* Botón Editar */}
+
+
+
 
             <TouchableOpacity
+
               style={styles.botonEditar}
-              onPress={() => editarUsuario(item)}
+
+              onPress={()=>
+
+                editarUsuario(item)
+
+              }
+
             >
 
               <Text style={styles.textoBoton}>
+
                 ✏️ Editar
+
               </Text>
+
 
             </TouchableOpacity>
 
-            {/* Botón Eliminar */}
+
+
+
+
 
             <TouchableOpacity
+
               style={styles.botonEliminar}
-              onPress={() =>
-                eliminarUsuario(item.id_usuario)
-              }
+
+              onPress={()=>{
+
+
+                console.log(
+
+                  "CLICK ELIMINAR ID:",
+
+                  item.id_usuario
+
+                );
+
+
+
+                eliminarUsuario(
+
+                  item.id_usuario
+
+                );
+
+
+              }}
+
             >
 
               <Text style={styles.textoBoton}>
+
                 🗑️ Eliminar
+
               </Text>
 
+
             </TouchableOpacity>
+
+
+
 
           </View>
 
+
+
         )}
 
+
+
+
         ListEmptyComponent={
+
 
           <Text style={styles.sinDatos}>
 
@@ -395,15 +609,27 @@ export default function Usuarios() {
 
           </Text>
 
+
         }
+
+
 
       />
 
+
     </View>
+
+
 
   );
 
+
 }
+
+
+
+
+
 
 /**
  * =====================================================
@@ -411,119 +637,153 @@ export default function Usuarios() {
  * =====================================================
  */
 
-const styles = StyleSheet.create({  /**
-   * Contenedor principal.
-   */
-  container: {
-    flex: 1,
-    backgroundColor: '#FFFFFF',
-    padding: 20,
+
+const styles = StyleSheet.create({
+
+
+  container:{
+
+    flex:1,
+
+    backgroundColor:'#FFFFFF',
+
+    padding:20,
+
   },
 
-  /**
-   * Botón volver.
-   */
-  botonVolver: {
-    marginTop: 20,
-    marginBottom: 20,
-    alignSelf: 'flex-start',
-    backgroundColor: '#007AFF',
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 10,
+
+
+  botonVolver:{
+
+    marginTop:20,
+
+    marginBottom:20,
+
+    alignSelf:'flex-start',
+
+    backgroundColor:'#007AFF',
+
+    paddingVertical:10,
+
+    paddingHorizontal:20,
+
+    borderRadius:10,
+
   },
 
-  /**
-   * Texto de botones.
-   */
-  textoBoton: {
-    color: '#FFFFFF',
-    textAlign: 'center',
-    fontSize: 16,
-    fontWeight: 'bold',
+
+
+  textoBoton:{
+
+    color:'#FFFFFF',
+
+    textAlign:'center',
+
+    fontSize:16,
+
+    fontWeight:'bold',
+
   },
 
-  /**
-   * Título principal.
-   */
-  titulo: {
-    fontSize: 30,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    color: '#0D3B66',
-    marginBottom: 30,
+
+
+  titulo:{
+
+    fontSize:30,
+
+    fontWeight:'bold',
+
+    textAlign:'center',
+
+    color:'#0D3B66',
+
+    marginBottom:30,
+
   },
 
-  /**
-   * Tarjeta del usuario.
-   */
-  tarjeta: {
-    backgroundColor: '#F8F8F8',
-    borderRadius: 15,
-    padding: 20,
-    marginBottom: 15,
 
-    shadowColor: '#000',
 
-    shadowOffset: {
-      width: 0,
-      height: 3,
-    },
+  tarjeta:{
 
-    shadowOpacity: 0.12,
+    backgroundColor:'#F8F8F8',
 
-    shadowRadius: 4,
+    borderRadius:15,
 
-    elevation: 4,
+    padding:20,
+
+    marginBottom:15,
+
+    elevation:4,
+
   },
 
-  /**
-   * Nombre del usuario.
-   */
-  nombre: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    color: '#0D3B66',
-    marginBottom: 8,
+
+
+  nombre:{
+
+    fontSize:22,
+
+    fontWeight:'bold',
+
+    color:'#0D3B66',
+
+    marginBottom:8,
+
   },
 
-  /**
-   * Información.
-   */
-  informacion: {
-    fontSize: 16,
-    color: '#555',
-    marginBottom: 5,
+
+
+  informacion:{
+
+    fontSize:16,
+
+    color:'#555',
+
+    marginBottom:5,
+
   },
 
-  /**
-   * Botón Editar.
-   */
-  botonEditar: {
-    backgroundColor: '#0D6EFD',
-    paddingVertical: 12,
-    borderRadius: 10,
-    marginTop: 18,
+
+
+  botonEditar:{
+
+    backgroundColor:'#0D6EFD',
+
+    paddingVertical:12,
+
+    borderRadius:10,
+
+    marginTop:18,
+
   },
 
-  /**
-   * Botón Eliminar.
-   */
-  botonEliminar: {
-    backgroundColor: '#DC3545',
-    paddingVertical: 12,
-    borderRadius: 10,
-    marginTop: 10,
+
+
+  botonEliminar:{
+
+    backgroundColor:'#DC3545',
+
+    paddingVertical:12,
+
+    borderRadius:10,
+
+    marginTop:10,
+
   },
 
-  /**
-   * Mensaje cuando no existen usuarios.
-   */
-  sinDatos: {
-    textAlign: 'center',
-    marginTop: 40,
-    fontSize: 18,
-    color: '#666',
+
+
+  sinDatos:{
+
+    textAlign:'center',
+
+    marginTop:40,
+
+    fontSize:18,
+
+    color:'#666',
+
   },
+
 
 });
