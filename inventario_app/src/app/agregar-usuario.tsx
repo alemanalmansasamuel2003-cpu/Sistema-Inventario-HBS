@@ -280,11 +280,6 @@ export default function AgregarUsuario() {
             value="Encargado"
           />
 
-          <Picker.Item
-            label="Consulta"
-            value="Consulta"
-          />
-
         </Picker>
 
       </View>

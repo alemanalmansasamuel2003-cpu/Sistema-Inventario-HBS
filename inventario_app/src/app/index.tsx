@@ -1,458 +1,466 @@
 import React, { useState } from 'react';
 import { useRouter } from 'expo-router';
+
 import {
   View,
   Text,
   TextInput,
   TouchableOpacity,
-  Alert,
   StyleSheet,
-  Image
+  Image,
+  Alert,
 } from 'react-native';
 
 import Animated, {
   FadeInDown,
-  BounceIn
+  FadeInUp,
 } from 'react-native-reanimated';
 
 import api from '../services/api';
 
-/**
- * =====================================================
- * IMPORTAR LOGO INSTITUCIONAL
- * =====================================================
- */
 import logoHBS from '../../assets/images/logo-hbs.jpg';
 
 /**
- * =====================================================
- * PANTALLA: INICIO DE SESIÓN
- * =====================================================
- * Permite a los usuarios autenticarse
- * en el sistema de inventario del
- * Hogar El Buen Samaritano.
- * =====================================================
+ * ============================================================
+ * LOGIN DEL SISTEMA
+ * ============================================================
+ *
+ * Permite autenticar un usuario dentro del
+ * Sistema de Inventario del Hogar El Buen Samaritano.
+ *
+ * Funcionalidades:
+ *
+ * ✔ Validación de campos.
+ * ✔ Inicio de sesión.
+ * ✔ Consumo de la API.
+ * ✔ Mostrar mensajes.
+ * ✔ Envío del ID, nombre, correo y rol
+ *   a la pantalla principal.
+ *
+ * ============================================================
  */
+
 export default function LoginScreen() {
 
   /**
-   * Hook utilizado para navegar
-   * entre pantallas.
+   * ============================================================
+   * ROUTER
+   * ============================================================
    */
+
   const router = useRouter();
 
   /**
-   * Estados del formulario.
+   * ============================================================
+   * ESTADOS
+   * ============================================================
    */
+
   const [correo, setCorreo] = useState('');
+
   const [password, setPassword] = useState('');
 
-  /**
-   * Estado para controlar la carga.
-   */
-  const [cargando, setCargando] = useState(false);
-
-  /**
-   * Estado para mostrar u ocultar
-   * la contraseña.
-   */
   const [mostrarPassword, setMostrarPassword] =
     useState(false);
 
+  const [loading, setLoading] =
+    useState(false);
+
   /**
-   * =====================================================
-   * FUNCIÓN PARA MOSTRAR MENSAJES
-   * =====================================================
+   * ============================================================
+   * MOSTRAR MENSAJES
+   * ============================================================
    */
+
   const mostrarMensaje = (
+
     titulo: string,
+
     mensaje: string
+
   ) => {
 
-    if (typeof window !== 'undefined') {
+    Alert.alert(
 
-      window.alert(
-        `${titulo}\n\n${mensaje}`
-      );
+      titulo,
 
-    } else {
+      mensaje
 
-      Alert.alert(
-        titulo,
-        mensaje
-      );
-    }
+    );
+
   };
 
   /**
-   * =====================================================
-   * FUNCIÓN PARA INICIAR SESIÓN
-   * =====================================================
+   * ============================================================
+   * INICIAR SESIÓN
+   * ============================================================
    */
+
   const iniciarSesion = async () => {
 
     /**
-     * Elimina espacios en blanco.
+     * Eliminar espacios en blanco.
      */
-    const correoLimpio = correo.trim();
+
+    const email = correo.trim();
 
     /**
-     * Validar campos vacíos.
+     * Validar campos obligatorios.
      */
-    if (!correoLimpio || !password) {
+
+    if (
+
+      !email ||
+
+      !password
+
+    ) {
 
       mostrarMensaje(
+
         'Campos incompletos',
-        'Debe completar todos los campos.'
+
+        'Debe ingresar el correo y la contraseña.'
+
       );
 
       return;
-    }
 
-    /**
-     * Validar formato del correo.
-     */
-    const expresionCorreo =
-      /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-    if (!expresionCorreo.test(correoLimpio)) {
-
-      mostrarMensaje(
-        'Correo inválido',
-        'Ingrese un correo electrónico válido.'
-      );
-
-      return;
     }
 
     try {
 
-      /**
-       * Activar estado de carga.
-       */
-      setCargando(true);
+      setLoading(true);
 
       /**
-       * Solicitud al backend.
+       * Consumir API.
        */
+
       const response = await api.post(
+
         '/auth/login',
+
         {
-          correo: correoLimpio,
+
+          correo: email,
+
           password
+
         }
+
       );
 
       /**
-       * Verificar autenticación.
+       * Si el login fue exitoso.
        */
+
       if (response.data.success) {
 
-        mostrarMensaje(
-          'Bienvenido',
-          `Hola ${response.data.usuario.nombre}, inicio de sesión exitoso.`
-        );
+        /**
+         * Información del usuario.
+         */
+
+        const usuario =
+          response.data.usuario;
 
         /**
-         * Redireccionar al inventario.
+         * Mostrar datos en consola.
          */
+
+        console.log('========== LOGIN ==========');
+
+        console.log(usuario);
+
+        /**
+         * Navegar al menú principal.
+         */
+
         router.replace({
+
           pathname: '/inventario',
+
           params: {
-            nombre:
-              response.data.usuario.nombre,
 
-            correo:
-              response.data.usuario.correo,
+            /**
+             * Identificador del usuario.
+             */
 
-            rol:
-              response.data.usuario.rol
+            id: String(usuario.id_usuario),
+
+            /**
+             * Nombre completo.
+             */
+
+            nombre: String(usuario.nombre),
+
+            /**
+             * Correo electrónico.
+             */
+
+            correo: String(usuario.correo),
+
+            /**
+             * Rol.
+             */
+
+            rol: String(usuario.rol)
+
           }
+
         });
+
       }
 
     } catch (error: any) {
 
-      console.log(
-        'Error de autenticación:',
-        error.response?.data
-      );
-
       mostrarMensaje(
+
         'Error',
-        error.response?.data?.mensaje ||
+
+        error.response?.data?.mensaje ??
+
         'No fue posible iniciar sesión.'
+
       );
 
     } finally {
 
-      /**
-       * Finalizar carga.
-       */
-      setCargando(false);
+      setLoading(false);
+
     }
+
   };
 
+  /**
+   * ============================================================
+   * INTERFAZ
+   * ============================================================
+   */
+
   return (
+        <View style={styles.container}>
 
-    <View style={styles.container}>
+      <Animated.View
+        entering={FadeInUp.duration(700)}
+        style={styles.card}
+      >
 
-      {/* Tarjeta principal */}
-      <View style={styles.card}>
+        {/* ============================================================ */}
+        {/* LOGO */}
+        {/* ============================================================ */}
 
-        {/* Logo institucional */}
         <Image
           source={logoHBS}
           style={styles.logo}
         />
 
-        {/* Icono de seguridad */}
-        <Text style={styles.iconoSeguridad}>
+        {/* ============================================================ */}
+        {/* ICONO */}
+        {/* ============================================================ */}
+
+        <Text style={styles.lock}>
           🔒
         </Text>
 
-        {/* Título principal */}
+        {/* ============================================================ */}
+        {/* TÍTULO */}
+        {/* ============================================================ */}
+
         <Animated.Text
-          entering={FadeInDown.duration(1000)}
-          style={styles.titulo}
+          entering={FadeInDown.delay(200)}
+          style={styles.title}
         >
           Iniciar Sesión
         </Animated.Text>
 
-        {/* Subtítulo */}
-        <Animated.Text
-          entering={FadeInDown.delay(200)}
-          style={styles.subtitulo}
-        >
-          Ingrese sus credenciales para acceder
-          al sistema de gestión de inventario.
-        </Animated.Text>
+        {/* ============================================================ */}
+        {/* CORREO */}
+        {/* ============================================================ */}
 
-        {/* Etiqueta correo */}
         <Text style={styles.label}>
-          📧 Correo electrónico
+          Correo electrónico
         </Text>
 
-        {/* Campo correo */}
-        <Animated.View
-          entering={
-            FadeInDown
-              .delay(300)
-              .duration(1000)
-          }
-        >
+        <TextInput
+          style={styles.input}
+          placeholder="correo@hogar.org"
+          placeholderTextColor="#999"
+          keyboardType="email-address"
+          autoCapitalize="none"
+          value={correo}
+          onChangeText={setCorreo}
+        />
+
+        {/* ============================================================ */}
+        {/* CONTRASEÑA */}
+        {/* ============================================================ */}
+
+        <Text style={styles.label}>
+          Contraseña
+        </Text>
+
+        <View style={styles.passwordContainer}>
 
           <TextInput
-            style={styles.input}
-            placeholder="ejemplo@hogar.org"
-            keyboardType="email-address"
-            autoCapitalize="none"
-            value={correo}
-            onChangeText={setCorreo}
+            style={styles.passwordInput}
+            placeholder="Ingrese su contraseña"
+            placeholderTextColor="#999"
+            secureTextEntry={!mostrarPassword}
+            value={password}
+            onChangeText={setPassword}
           />
 
-        </Animated.View>
-
-        {/* Etiqueta contraseña */}
-        <Text style={styles.label}>
-          🔒 Contraseña
-        </Text>
-
-        {/* Campo contraseña */}
-        <Animated.View
-          entering={
-            FadeInDown
-              .delay(500)
-              .duration(1000)
-          }
-        >
-
-          <View style={styles.passwordContainer}>
-
-            <TextInput
-              style={styles.passwordInput}
-              placeholder="Ingrese su contraseña"
-              secureTextEntry={!mostrarPassword}
-              value={password}
-              onChangeText={setPassword}
-            />
-
-            <TouchableOpacity
-              onPress={() =>
-                setMostrarPassword(
-                  !mostrarPassword
-                )
-              }
-            >
-              <Text style={styles.icono}>
-                {mostrarPassword
-                  ? '🙈'
-                  : '👁️'}
-              </Text>
-            </TouchableOpacity>
-
-          </View>
-
-        </Animated.View>
-
-        {/* Botón iniciar sesión */}
-        <Animated.View
-          entering={BounceIn.delay(800)}
-        >
-
           <TouchableOpacity
-            style={styles.boton}
-            onPress={iniciarSesion}
-            disabled={cargando}
+            onPress={() =>
+              setMostrarPassword(!mostrarPassword)
+            }
           >
 
-            <Text style={styles.textoBoton}>
-              {
-                cargando
-                  ? 'Ingresando...'
-                  : 'Iniciar Sesión'
-              }
+            <Text style={styles.eye}>
+              {mostrarPassword ? '🙈' : '👁️'}
             </Text>
 
           </TouchableOpacity>
 
-        </Animated.View>
-
-        {/* Información institucional */}
-        <View style={styles.infoBox}>
-
-          <Text style={styles.infoTitulo}>
-            🛡️ Acceso autorizado
-          </Text>
-
-          <Text style={styles.infoTexto}>
-            Este sistema es de uso exclusivo
-            para el personal autorizado del
-            Hogar El Buen Samaritano.
-          </Text>
-
         </View>
 
-      </View>
+        {/* ============================================================ */}
+        {/* BOTÓN INICIAR SESIÓN */}
+        {/* ============================================================ */}
+
+        <TouchableOpacity
+          style={styles.button}
+          onPress={iniciarSesion}
+          disabled={loading}
+        >
+
+          <Text style={styles.buttonText}>
+
+            {
+              loading
+                ? 'Ingresando...'
+                : 'Iniciar Sesión'
+            }
+
+          </Text>
+
+        </TouchableOpacity>
+
+      </Animated.View>
 
     </View>
+
   );
+
 }
 
 /**
- * =====================================================
+ * ============================================================
  * ESTILOS
- * =====================================================
+ * ============================================================
  */
-const styles = StyleSheet.create({
 
-  /**
+const styles = StyleSheet.create({  /**
    * Contenedor principal.
    */
   container: {
     flex: 1,
     justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#F3EFE6',
     padding: 20,
-    backgroundColor: '#F3EFE6'
   },
 
   /**
-   * Tarjeta principal.
+   * Tarjeta del formulario.
    */
   card: {
+    width: '100%',
+    maxWidth: 430,
     backgroundColor: '#FFFFFF',
-    borderRadius: 30,
+    borderRadius: 28,
     padding: 30,
-
-    elevation: 8,
 
     shadowColor: '#000',
 
     shadowOffset: {
       width: 0,
-      height: 4
+      height: 5,
     },
 
-    shadowOpacity: 0.20,
-    shadowRadius: 8
+    shadowOpacity: 0.15,
+
+    shadowRadius: 8,
+
+    elevation: 8,
   },
 
   /**
-   * Logo institucional.
+   * Logo del Hogar.
    */
   logo: {
-    width: 220,
-    height: 120,
+    width: 170,
+    height: 80,
     resizeMode: 'contain',
     alignSelf: 'center',
-    marginBottom: 10
+    marginBottom: 15,
   },
 
   /**
-   * Icono de seguridad.
+   * Icono del candado.
    */
-  iconoSeguridad: {
-    fontSize: 40,
+  lock: {
+    fontSize: 38,
     textAlign: 'center',
-    marginBottom: 15
+    marginBottom: 10,
   },
 
   /**
    * Título principal.
    */
-  titulo: {
-    fontSize: 36,
+  title: {
+    fontSize: 34,
     fontWeight: 'bold',
     textAlign: 'center',
     color: '#0D3B66',
-    marginBottom: 10
+    marginBottom: 35,
   },
 
   /**
-   * Subtítulo.
-   */
-  subtitulo: {
-    textAlign: 'center',
-    fontSize: 16,
-    color: '#666',
-    lineHeight: 24,
-    marginBottom: 25
-  },
-
-  /**
-   * Etiquetas de campos.
+   * Etiquetas.
    */
   label: {
-    fontSize: 16,
-    fontWeight: 'bold',
+    fontSize: 15,
+    fontWeight: '600',
     color: '#0D3B66',
     marginBottom: 8,
-    marginTop: 10
+    marginTop: 10,
   },
 
   /**
-   * Campo correo.
+   * Campo de texto.
    */
   input: {
+    backgroundColor: '#F8F8F8',
     borderWidth: 1,
-    borderColor: '#D9D9D9',
+    borderColor: '#DDD',
     borderRadius: 12,
-    padding: 15,
-    marginBottom: 15,
-    backgroundColor: '#F8F8F8'
+    paddingHorizontal: 16,
+    paddingVertical: 15,
+    fontSize: 15,
   },
 
   /**
-   * Contenedor contraseña.
+   * Contenedor de contraseña.
    */
   passwordContainer: {
     flexDirection: 'row',
     alignItems: 'center',
+    backgroundColor: '#F8F8F8',
     borderWidth: 1,
-    borderColor: '#D9D9D9',
+    borderColor: '#DDD',
     borderRadius: 12,
-    paddingHorizontal: 15,
-    backgroundColor: '#F8F8F8'
+    paddingHorizontal: 16,
   },
 
   /**
@@ -460,64 +468,35 @@ const styles = StyleSheet.create({
    */
   passwordInput: {
     flex: 1,
-    paddingVertical: 15
+    paddingVertical: 15,
+    fontSize: 15,
   },
 
   /**
    * Icono mostrar contraseña.
    */
-  icono: {
-    fontSize: 24
+  eye: {
+    fontSize: 22,
   },
 
   /**
    * Botón iniciar sesión.
    */
-  boton: {
+  button: {
+    marginTop: 30,
     backgroundColor: '#C8A96A',
-    padding: 18,
-    borderRadius: 15,
-    marginTop: 25
+    borderRadius: 14,
+    paddingVertical: 18,
   },
 
   /**
    * Texto del botón.
    */
-  textoBoton: {
-    color: '#FFFFFF',
+  buttonText: {
     textAlign: 'center',
-    fontSize: 18,
-    fontWeight: 'bold'
-  },
-
-  /**
-   * Caja informativa.
-   */
-  infoBox: {
-    marginTop: 30,
-    backgroundColor: '#F5F1E8',
-    borderRadius: 15,
-    padding: 18
-  },
-
-  /**
-   * Título de la caja informativa.
-   */
-  infoTitulo: {
+    color: '#FFFFFF',
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#0D3B66',
-    textAlign: 'center',
-    marginBottom: 10
   },
-
-  /**
-   * Texto de la caja informativa.
-   */
-  infoTexto: {
-    textAlign: 'center',
-    color: '#555',
-    lineHeight: 22
-  }
 
 });

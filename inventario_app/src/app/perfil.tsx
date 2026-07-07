@@ -1,35 +1,133 @@
 import { router, useLocalSearchParams } from 'expo-router';
+import React from 'react';
 import {
   View,
   Text,
   TouchableOpacity,
-  StyleSheet
+  StyleSheet,
 } from 'react-native';
+
+/**
+ * =====================================================
+ * PANTALLA: MI PERFIL
+ * =====================================================
+ *
+ * Muestra la información del usuario que inició sesión.
+ *
+ * Funcionalidades:
+ *
+ * ✔ Mostrar nombre.
+ * ✔ Mostrar correo.
+ * ✔ Mostrar rol.
+ * ✔ Editar el propio perfil.
+ * ✔ Acceso a administración (Administrador).
+ *
+ * =====================================================
+ */
 
 export default function Perfil() {
 
-  const { nombre, correo, rol } = useLocalSearchParams();
+  /**
+   * =====================================================
+   * DATOS DEL USUARIO AUTENTICADO
+   * =====================================================
+   */
+
+  const {
+
+    id,
+
+    nombre,
+
+    correo,
+
+    rol
+
+  } = useLocalSearchParams();
+
+  /**
+   * =====================================================
+   * EDITAR PERFIL
+   * =====================================================
+   *
+   * Se envían todos los datos del usuario autenticado.
+   *
+   * =====================================================
+   */
+
+  const editarPerfil = () => {
+
+    router.push({
+
+      pathname: '/editar-perfil',
+
+      params: {
+
+        id: String(id),
+
+        nombre: String(nombre),
+
+        correo: String(correo),
+
+        /**
+         * Rol del usuario que se edita.
+         */
+
+        rol: String(rol),
+
+        /**
+         * Rol del usuario autenticado.
+         */
+
+        rolUsuario: String(rol)
+
+      }
+
+    });
+
+  };
+
+  /**
+   * =====================================================
+   * INTERFAZ
+   * =====================================================
+   */
 
   return (
+
     <View style={styles.container}>
+
+    {/* ===================================================== */}
+    {/* BOTÓN VOLVER */}
+    {/* ===================================================== */}
 
       <TouchableOpacity
         style={styles.botonVolver}
         onPress={() => router.back()}
       >
+
         <Text style={styles.textoBoton}>
           ⬅ Volver
         </Text>
+
       </TouchableOpacity>
+
+      {/* ===================================================== */}
+      {/* TÍTULO */}
+      {/* ===================================================== */}
 
       <Text style={styles.titulo}>
         Mi Perfil
       </Text>
 
+      {/* ===================================================== */}
+      {/* TARJETA */}
+      {/* ===================================================== */}
+
       <View style={styles.tarjeta}>
 
         <Text style={styles.etiqueta}>
-          Nombre:
+          Nombre
         </Text>
 
         <Text style={styles.valor}>
@@ -37,7 +135,7 @@ export default function Perfil() {
         </Text>
 
         <Text style={styles.etiqueta}>
-          Correo:
+          Correo
         </Text>
 
         <Text style={styles.valor}>
@@ -45,7 +143,7 @@ export default function Perfil() {
         </Text>
 
         <Text style={styles.etiqueta}>
-          Rol:
+          Rol
         </Text>
 
         <Text style={styles.valor}>
@@ -54,51 +152,121 @@ export default function Perfil() {
 
       </View>
 
+      {/* ===================================================== */}
+      {/* BOTÓN EDITAR PERFIL */}
+      {/* ===================================================== */}
+
       <TouchableOpacity
         style={styles.boton}
-        onPress={() => router.push('/editar-perfil')}
+        onPress={editarPerfil}
       >
+
         <Text style={styles.textoBoton}>
           ✏️ Editar Perfil
         </Text>
-      </TouchableOpacity>
+
+      </TouchableOpacity>      
+
+      {/* ===================================================== */}
+      {/* OPCIONES EXCLUSIVAS DEL ADMINISTRADOR */}
+      {/* ===================================================== */}
 
       {rol === 'Administrador' && (
 
         <>
-          <TouchableOpacity
-            style={styles.boton}
-            onPress={() => router.push('/usuarios')}
-          >
-            <Text style={styles.textoBoton}>
-              👥 Administrar Usuarios
-            </Text>
-          </TouchableOpacity>
+
+          {/* Administrar Usuarios */}
 
           <TouchableOpacity
             style={styles.boton}
-            onPress={() => router.push('/agregar-usuario')}
+            onPress={() =>
+              router.push({
+
+                pathname: '/usuarios',
+
+                params: {
+
+                  /**
+                   * Se envía el rol del usuario autenticado
+                   * para que Editar Perfil sepa que quien
+                   * está editando es un Administrador.
+                   */
+                  rol: String(rol)
+
+                }
+
+              })
+            }
           >
+
+            <Text style={styles.textoBoton}>
+              👥 Administrar Usuarios
+            </Text>
+
+          </TouchableOpacity>
+
+          {/* Agregar Usuario */}
+
+          <TouchableOpacity
+            style={styles.boton}
+            onPress={() =>
+              router.push({
+
+                pathname: '/agregar-usuario',
+
+                params: {
+
+                  /**
+                   * También se envía el rol del
+                   * usuario autenticado.
+                   */
+                  rol: String(rol)
+
+                }
+
+              })
+            }
+          >
+
             <Text style={styles.textoBoton}>
               ➕ Agregar Usuario
             </Text>
+
           </TouchableOpacity>
+
         </>
 
       )}
 
     </View>
+
   );
+
 }
 
-const styles = StyleSheet.create({
+/**
+ * =====================================================
+ * ESTILOS
+ * =====================================================
+ */
 
+const styles = StyleSheet.create({  
+  /**
+   * =====================================================
+   * CONTENEDOR PRINCIPAL
+   * =====================================================
+   */
   container: {
     flex: 1,
-    backgroundColor: '#fff',
-    padding: 20
+    backgroundColor: '#FFFFFF',
+    padding: 20,
   },
 
+  /**
+   * =====================================================
+   * BOTÓN VOLVER
+   * =====================================================
+   */
   botonVolver: {
     marginTop: 20,
     marginBottom: 20,
@@ -106,48 +274,90 @@ const styles = StyleSheet.create({
     backgroundColor: '#007AFF',
     paddingVertical: 10,
     paddingHorizontal: 20,
-    borderRadius: 10
+    borderRadius: 10,
   },
 
+  /**
+   * =====================================================
+   * TÍTULO
+   * =====================================================
+   */
   titulo: {
     fontSize: 30,
     fontWeight: 'bold',
     textAlign: 'center',
-    marginBottom: 30
+    color: '#0D3B66',
+    marginBottom: 30,
   },
 
+  /**
+   * =====================================================
+   * TARJETA DEL PERFIL
+   * =====================================================
+   */
   tarjeta: {
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#F8F8F8',
     padding: 25,
     borderRadius: 15,
-    elevation: 3,
-    marginBottom: 25
+
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 3,
+    },
+    shadowOpacity: 0.12,
+    shadowRadius: 4,
+
+    elevation: 4,
+
+    marginBottom: 25,
   },
 
+  /**
+   * =====================================================
+   * ETIQUETAS
+   * =====================================================
+   */
   etiqueta: {
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: 'bold',
-    marginTop: 15
+    color: '#0D3B66',
+    marginTop: 15,
   },
 
+  /**
+   * =====================================================
+   * VALORES
+   * =====================================================
+   */
   valor: {
-    fontSize: 18,
-    color: '#333',
-    marginTop: 5
+    fontSize: 17,
+    color: '#444',
+    marginTop: 5,
   },
 
+  /**
+   * =====================================================
+   * BOTONES
+   * =====================================================
+   */
   boton: {
-    backgroundColor: '#007AFF',
-    padding: 15,
+    backgroundColor: '#0D6EFD',
+    paddingVertical: 15,
     borderRadius: 10,
-    marginBottom: 15
+    marginBottom: 15,
   },
 
+  /**
+   * =====================================================
+   * TEXTO BOTONES
+   * =====================================================
+   */
   textoBoton: {
-    color: '#fff',
+    color: '#FFFFFF',
     textAlign: 'center',
     fontSize: 18,
-    fontWeight: 'bold'
-  }
+    fontWeight: 'bold',
+  },
 
 });
